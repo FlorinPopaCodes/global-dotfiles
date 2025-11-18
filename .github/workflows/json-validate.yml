@@ -1,0 +1,31 @@
+name: Validate JSON
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate JSON files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git ls-files '*.json')
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No JSON files found."
+            exit 0
+          fi
+          for file in "${files[@]}"; do
+            echo "Validating $file"
+            python -m json.tool "$file" > /dev/null
+          done
+
